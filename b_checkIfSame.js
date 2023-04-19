@@ -27,6 +27,7 @@ app.get('/', async (req, res) => {
     const finished = 'Done checking if same album cover. You can now start the next script!';
     if (songIndex >= songs.length) {
         res.send(finished);
+        console.log(finished);
         process.exit();
     }
     while (confirmedSongsIds.includes(songs[songIndex].spotifyId)) {
@@ -40,17 +41,17 @@ app.get('/', async (req, res) => {
     request(songs[songIndex].ytAlbumCover).pipe(fs.createWriteStream(filePath))
         .on('close', async () => {
             let html = `<body style="background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                <div style="text-align: center;"><h1>Are they the same song? ${songIndex + 1}/${songs.length}</h1>
-                <p>Spotify: <a href="https://open.spotify.com/track/${songs[songIndex].spotifyId}" target="_blank">
-                ${songs[songIndex].spotifyDuration} - ${songs[songIndex].spotifyTitle} - ${songs[songIndex].spotifyArtists}</a></p>
-                <p>YouTube: <a href="${songs[songIndex].url}" target="_blank">
-                ${songs[songIndex].ytDuration} - ${songs[songIndex].ytTitle} - ${songs[songIndex].ytArtists}</a></p></div>
-                <div style="display: flex; justify-content: center;">
-                <img src="/images/tempImage.jpg" alt="Image1" width="120" height="120" style="margin-right: 10px;">
-                <img src="${songs[songIndex].spotifyAlbumCover}" alt="Image2" width="120" height="120"></div>
-                <div style="display: flex; justify-content: center; margin-top: 10px">
-                <button><a href="/same?spotifyId=${songs[songIndex].spotifyId}">same</a></button> 
-                <button><a href="/different?spotifyId=${songs[songIndex].spotifyId}">different</a></button></div></body>`
+            <div style="text-align: center;"><h1>Are they the same song? ${songIndex + 1}/${songs.length}</h1>
+            <p>Spotify: <a href="https://open.spotify.com/track/${songs[songIndex].spotifyId}" target="_blank">
+            ${songs[songIndex].spotifyDuration} - ${songs[songIndex].spotifyTitle} - ${songs[songIndex].spotifyArtists.join('; ')}</a></p>
+            <p>YouTube: <a href="${songs[songIndex].url}" target="_blank">
+            ${songs[songIndex].ytDuration} - ${songs[songIndex].ytTitle} - ${songs[songIndex].ytArtists.join('; ')}</a></p></div>
+            <div style="display: flex; justify-content: center;">
+            <img src="/images/tempImage.jpg" alt="Image1" width="120" height="120" style="margin-right: 10px;">
+            <img src="${songs[songIndex].spotifyAlbumCover}" alt="Image2" width="120" height="120"></div>
+            <div style="display: flex; justify-content: center; margin-top: 10px">
+            <button><a href="/same?spotifyId=${songs[songIndex].spotifyId}">same</a></button> 
+            <button><a href="/different?spotifyId=${songs[songIndex].spotifyId}">different</a></button></div></body>`
             res.send(html);
         })
 });
@@ -65,7 +66,7 @@ app.get('/same', async (req, res) => {
     sameSongs.push(songs[searchspotifyId(req.query.spotifyId, songs)]);
     songIndex++;
     await setDatabase('confirmedSongs', sameSongs);
-    if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs.json
+    if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs
         differentSongs.splice(searchspotifyId(req.query.spotifyId, differentSongs), 1);
         await setDatabase('unconfirmedSongs', differentSongs);
     }
@@ -73,7 +74,7 @@ app.get('/same', async (req, res) => {
 });
 
 app.get('/different', async (req, res) => {
-    if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs.json
+    if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs
         songIndex++;
         res.redirect('/');
         return;

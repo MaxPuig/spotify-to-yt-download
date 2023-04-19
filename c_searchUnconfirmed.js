@@ -21,11 +21,11 @@ app.get('/search_again', async (req, res) => {
         res.redirect("/done_alternatives");
         return;
     }
-    content = await YouTubeMusic.searchMusics(`${unconfirmedSongs[indexUnconf].spotifyTitle} ${unconfirmedSongs[indexUnconf].spotifyArtists}`);
+    content = await YouTubeMusic.searchMusics(`${unconfirmedSongs[indexUnconf].spotifyTitle} ${unconfirmedSongs[indexUnconf].spotifyArtists.join(' ')}`);
     let html = `<body style="background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <div style="text-align: center;"><h1>Select new song for:</h1>
                 <p>Spotify: <a href="https://open.spotify.com/track/${unconfirmedSongs[indexUnconf].spotifyId}" target="_blank">
-                ${unconfirmedSongs[indexUnconf].spotifyDuration} - ${unconfirmedSongs[indexUnconf].spotifyTitle} - ${unconfirmedSongs[indexUnconf].spotifyArtists}
+                ${unconfirmedSongs[indexUnconf].spotifyDuration} - ${unconfirmedSongs[indexUnconf].spotifyTitle} - ${unconfirmedSongs[indexUnconf].spotifyArtists.join('; ')}
                 </a></p><img src="${unconfirmedSongs[indexUnconf].spotifyAlbumCover}" alt="Image2" width="120" height="120"><p></p>
                 <button><a href="/select_alternative?contentIndex=-1">NO ALTERNATIVE FOUND</a></button>`
     for (let i = 0; i < content.length; i++) {
@@ -51,7 +51,7 @@ app.get('/select_alternative', async (req, res) => {
     confirmed.push({
         url: `https://youtube.com/watch?v=${content[indexContent].youtubeId}`,
         ytTitle: content[indexContent].title,
-        ytArtists: content[indexContent].artists.map(artist => artist.name).join('; '),
+        ytArtists: content[indexContent].artists.map(artist => artist.name),
         ytAlbum: content[indexContent].album,
         ytAlbumCover: content[indexContent].thumbnailUrl,
         ytDuration: content[indexContent].duration.label,
@@ -60,7 +60,8 @@ app.get('/select_alternative', async (req, res) => {
         spotifyArtists: unconfirmedSongs[indexUnconf].spotifyArtists,
         spotifyAlbum: unconfirmedSongs[indexUnconf].spotifyAlbum,
         spotifyAlbumCover: unconfirmedSongs[indexUnconf].spotifyAlbumCover,
-        spotifyDuration: unconfirmedSongs[indexUnconf].spotifyDuration
+        spotifyDuration: unconfirmedSongs[indexUnconf].spotifyDuration,
+        spotifyYear: unconfirmedSongs[indexUnconf].spotifyYear,
     })
     await setDatabase('confirmedSongs', confirmed);
     // remove from unconfirmed
@@ -72,6 +73,7 @@ app.get('/select_alternative', async (req, res) => {
 
 app.get('/done_alternatives', (req, res) => {
     res.send("Done searching for alternatives!");
+    console.log("Done searching for alternatives!");
     process.exit();
 });
 

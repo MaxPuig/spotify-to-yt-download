@@ -1,4 +1,3 @@
-
 import { getDatabase, setDatabase } from './database.js';
 import * as YouTubeMusic from 'node-youtube-music';
 import SpotifyWebApi from 'spotify-web-api-node';
@@ -46,7 +45,6 @@ async function getSongsFromYoutubeMusic(tracks) {
             // If already in ytList, skip
             let ytList = await getDatabase('ytList');
             if (ytList.filter(song => song.spotifyId === track.id).length > 0) continue;
-            
             await sleep(100);
             // Search on YouTube Music
             let content = await YouTubeMusic.searchMusics(`${track.name} ${track.artists.map(artist => artist.name).join(' ')}`);
@@ -56,7 +54,7 @@ async function getSongsFromYoutubeMusic(tracks) {
             content = content.filter(song => replaceTitle(song.title) === replaceTitle(track.name))
             content = content.filter(song => song.artists.length > 0)
             content = content.filter(song => song.artists[0].name === track.artists[0].name)
-            // Filter Explicit -- NO IDEA WHAT THIS DOES
+            // Filter Explicit -- Explicit will be preferred
             let explicit = content.filter(song => song.isExplicit)
             content = explicit.length > 0 ? explicit : content
             // Add YouTube URL
@@ -64,31 +62,33 @@ async function getSongsFromYoutubeMusic(tracks) {
                 ytList.push({
                     url: `https://youtube.com/watch?v=${originalContent[0]?.youtubeId}`,
                     ytTitle: originalContent[0]?.title,
-                    ytArtists: originalContent[0]?.artists.map(artist => artist.name).join('; '),
+                    ytArtists: originalContent[0]?.artists.map(artist => artist.name),
                     ytAlbum: originalContent[0]?.album,
                     ytAlbumCover: originalContent[0]?.thumbnailUrl,
                     ytDuration: originalContent[0]?.duration.label,
                     spotifyId: track.id,
                     spotifyTitle: track.name,
-                    spotifyArtists: track.artists.map(artist => artist.name).join('; '),
+                    spotifyArtists: track.artists.map(artist => artist.name),
                     spotifyAlbum: track.album.name,
                     spotifyAlbumCover: track.album.images[0].url,
-                    spotifyDuration: msToMinsSecs(track.duration_ms)
+                    spotifyDuration: msToMinsSecs(track.duration_ms),
+                    spotifyYear: track.album.release_date.split('-')[0]
                 })
             } else {
                 ytList.push({
                     url: `https://youtube.com/watch?v=${content[0].youtubeId}`,
                     ytTitle: content[0].title,
-                    ytArtists: content[0].artists.map(artist => artist.name).join('; '),
+                    ytArtists: content[0].artists.map(artist => artist.name),
                     ytAlbum: content[0].album,
                     ytAlbumCover: content[0].thumbnailUrl,
                     ytDuration: content[0]?.duration.label,
                     spotifyId: track.id,
                     spotifyTitle: track.name,
-                    spotifyArtists: track.artists.map(artist => artist.name).join('; '),
+                    spotifyArtists: track.artists.map(artist => artist.name),
                     spotifyAlbum: track.album.name,
                     spotifyAlbumCover: track.album.images[0].url,
-                    spotifyDuration: msToMinsSecs(track.duration_ms)
+                    spotifyDuration: msToMinsSecs(track.duration_ms),
+                    spotifyYear: track.album.release_date.split('-')[0]
                 })
             }
             console.log(`Song ${i + 1}/${tracks.length} - ${(((i + 1) * 100) / (tracks.length)).toFixed(2)}% - ${tracks[i].track.name}`);
@@ -107,13 +107,11 @@ function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 
 function replaceTitle(title) {
-    let toCut = title.slice(title.indexOf(' ('), title.length);
-    if (title.indexOf(' (') < 0) toCut = '';
-    let title_ = title.replace(toCut, '');
-    toCut = title.slice(title.indexOf(' - '), title.length);
-    if (title.indexOf(' - ') < 0) toCut = '';
-    title_ = title_.replace(toCut, '');
-    return title_;
+    // Replace extra content so it can be compared
+    // Remove the parentheses and its content
+    // Remove the dash and everythong onwards
+    title = title.replace(/ \(.+?\)/, '').replace(/ - .+$/, '');
+    return title;
 }
 
 
