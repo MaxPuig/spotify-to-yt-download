@@ -12,7 +12,7 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
   - Windows ([Chocolately](https://chocolatey.org/install)): `choco install ffmpeg`
   - macOS ([Homebrew](https://brew.sh/)): `brew install ffmpeg`
   - Linux: `sudo apt install ffmpeg`
-- Modify the variable `config` from `a_index.js` with your Spotify credentials (Client ID and Client Secret)
+- Modify the variable `config` from `1_index.js` with your Spotify credentials (Client ID, Client Secret and Playlist ID)
   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create a new app
   - Copy the Client ID and Client Secret into the `config` variable
   - Also add the Spotify Playlist ID you want to download. You can get it from the Spotify URL (e.g. `https://open.spotify.com/playlist/0BxSFctZ12PYY7ysO9mrTc` → `0BxSFctZ12PYY7ysO9mrTc`)
@@ -21,7 +21,7 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 ## Steps
 1. Clone the repository: `git clone https://github.com/MaxPuig/spotify-to-yt-download.git`
 2. Install libraries: `npm install`
-3. Modify `a_index.js`'s `config` variable with your Spotify `clientId`, `clientSecret`, and `playlistId`
+3. Modify `1_index.js`'s `config` variable with your Spotify `clientId`, `clientSecret`, and `playlistId`
 4. Run the scripts in order
    1. `node 1_index.js` - Search for the Spotify songs on YouTube Music.
    2. `node 2_compareAlbumCover.js` - Compare the Spotify and YouTube Music album covers and playtime. Modify the `percentage` variable to change the threshold for the album cover similarity.
