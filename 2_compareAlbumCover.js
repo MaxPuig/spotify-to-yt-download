@@ -25,13 +25,13 @@ for (let i = 0; i < songs.length; i++) {
     let song1Seconds = song.ytDuration.split(':').reduce((acc, time) => (60 * acc) + +time);
     let song2Seconds = song.spotifyDuration.split(':').reduce((acc, time) => (60 * acc) + +time);
 
-    if (same_image && Math.abs(song1Seconds - song2Seconds) < 3) {
+    if (same_image[0] && Math.abs(song1Seconds - song2Seconds) < 3) {
         let confirmedSongs = await getDatabase('confirmedSongs');
         confirmedSongs.push(song);
         await setDatabase('confirmedSongs', confirmedSongs);
         console.log('Same - ' + songs[i].spotifyTitle);
     } else {
-        let reason = same_image ? 'Duration - ' : 'Album Cover - ';
+        let reason = same_image[0] ? 'Duration ' + Math.abs(song1Seconds - song2Seconds) + 's - ' : 'Album Cover ' + same_image[1] + '% - ';
         console.log('Different ' + reason + songs[i].spotifyTitle);
     }
 }
@@ -67,10 +67,9 @@ async function imagesAreEqual(image1url, image2url, percentage = 80.0) {
     // Calculate the percentage of resemblance
     const totalPixels = width * height;
     const resemblancePercentage = ((totalPixels - mismatchedPixels) / totalPixels) * 100;
-    console.log('Resemblance percentage: ' + resemblancePercentage);
     if (resemblancePercentage > percentage) {
-        return true;
+        return [true, Math.round(resemblancePercentage)];
     } else {
-        return false;
+        return [false, Math.round(resemblancePercentage)];
     }
 }
