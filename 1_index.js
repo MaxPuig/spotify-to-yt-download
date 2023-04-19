@@ -44,7 +44,10 @@ async function getSongsFromYoutubeMusic(tracks) {
             let track = tracks[i].track;
             // If already in ytList, skip
             let ytList = await getDatabase('ytList');
-            if (ytList.filter(song => song.spotifyId === track.id).length > 0) continue;
+            if (ytList.filter(song => song.spotifyId === track.id).length > 0) {
+                console.log('Already in ytList - ' + track.name);
+                continue;
+            }
             await sleep(100);
             // Search on YouTube Music
             let content = await YouTubeMusic.searchMusics(`${track.name} ${track.artists.map(artist => artist.name).join(' ')}`);

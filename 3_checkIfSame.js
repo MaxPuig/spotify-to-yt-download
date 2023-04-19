@@ -21,6 +21,7 @@ function checkIfConfirmed() {
     }
 }
 
+let number_of_unconfirmed = 0;
 app.get('/', async (req, res) => {
     const filePath = 'tempImage.jpg';
     checkIfConfirmed();
@@ -34,14 +35,18 @@ app.get('/', async (req, res) => {
         songIndex++;
         if (songIndex >= songs.length) {
             res.send(finished);
+            console.log(finished);
             process.exit();
         }
     }
     console.log(`${songIndex + 1}/${songs.length} - ${songs[songIndex].spotifyTitle}`);
     request(songs[songIndex].ytAlbumCover).pipe(fs.createWriteStream(filePath))
         .on('close', async () => {
+            let calculate_confirmed = await getDatabase('confirmedSongs');
+            let calculate_unconfirmed = songs.length - calculate_confirmed.length - number_of_unconfirmed;
+
             let html = `<body style="background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <div style="text-align: center;"><h1>Are they the same song? ${songIndex + 1}/${songs.length}</h1>
+            <div style="text-align: center;"><h1>Are they the same song? ${songIndex + 1}/${songs.length} (${calculate_unconfirmed} left)</h1>
             <p>Spotify: <a href="https://open.spotify.com/track/${songs[songIndex].spotifyId}" target="_blank">
             ${songs[songIndex].spotifyDuration} - ${songs[songIndex].spotifyTitle} - ${songs[songIndex].spotifyArtists.join('; ')}</a></p>
             <p>YouTube: <a href="${songs[songIndex].url}" target="_blank">
@@ -74,6 +79,7 @@ app.get('/same', async (req, res) => {
 });
 
 app.get('/different', async (req, res) => {
+    number_of_unconfirmed++;
     if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs
         songIndex++;
         res.redirect('/');

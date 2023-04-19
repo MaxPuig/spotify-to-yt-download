@@ -15,7 +15,7 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 - Modify the variable `config` from `a_index.js` with your Spotify credentials (Client ID and Client Secret)
   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create a new app
   - Copy the Client ID and Client Secret into the `config` variable
-  - Also add the Spotify Playlist ID you want to download. You can get it from the Spotify URL (e.g. `https://open.spotify.com/playlist/0BxSFctZ12PYY7ysO9mrTc` -> `0BxSFctZ12PYY7ysO9mrTc`)
+  - Also add the Spotify Playlist ID you want to download. You can get it from the Spotify URL (e.g. `https://open.spotify.com/playlist/0BxSFctZ12PYY7ysO9mrTc` → `0BxSFctZ12PYY7ysO9mrTc`)
 
 
 ## Steps
@@ -23,8 +23,9 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 2. Install libraries: `npm install`
 3. Modify `a_index.js`'s `config` variable with your Spotify `clientId`, `clientSecret`, and `playlistId`
 4. Run the scripts in order
-   1. `node a_index.js` - Search for the Spotify songs on YouTube Music.
-   2. `node b_checkIfSame.js` - Open http://localhost:1234/ and choose if the songs match.
-   3. `node c_searchUnconfirmed.js` - Open http://localhost:1234/ and choose an alternative YouTube video/song.
-   4. `node d_yt2mp3.js` - Download the songs to the `./songs` folder.
+   1. `node 1_index.js` - Search for the Spotify songs on YouTube Music.
+   2. `node 2_compareAlbumCover.js` - Compare the Spotify and YouTube Music album covers and playtime. Modify the `percentage` variable to change the threshold for the album cover similarity.
+   3. `node 3_checkIfSame.js` - (Recommended/Optional) Open http://localhost:1234/ and choose if the songs match. This step is optional if you trust the previous step, you download all songs.
+   4. `node 4_searchUnconfirmed.js` - (Optional) Open http://localhost:1234/ and choose an alternative YouTube video/song. This step is optional if you don't want to search for an alternative song from the "different" songs from the previous step.
+   5. `node 5_yt2mp3.js` - Download the songs to the `./songs` folder.
 5. Enjoy your songs in the `./songs` folder!

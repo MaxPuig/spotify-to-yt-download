@@ -7,10 +7,10 @@ await db.read();
 if (db.data === null) { // Si no existe el archivo/db, lo crea.
     db.data = {
         'ytList': [],
-        'downloaded': [],
-        'notDownloaded': [],
         'confirmedSongs': [],
-        'unconfirmedSongs': []
+        'unconfirmedSongs': [],
+        'downloaded': [],
+        'notDownloaded': []
     }
     await db.write();
 } else { // Si existe, comprueba que no falten campos.
