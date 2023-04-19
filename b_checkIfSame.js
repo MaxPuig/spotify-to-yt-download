@@ -1,5 +1,6 @@
 import express from 'express';
 import request from 'request';
+import path from 'path';
 import fs from 'fs';
 import { getDatabase, setDatabase } from './database.js';
 let songs = await getDatabase('ytList');
@@ -23,12 +24,17 @@ function checkIfConfirmed() {
 app.get('/', async (req, res) => {
     const filePath = 'tempImage.jpg';
     checkIfConfirmed();
+    const finished = 'Done checking if same album cover. You can now start the next script!';
     if (songIndex >= songs.length) {
-        res.send('Done checking if same album cover. You can now start downloading!');
+        res.send(finished);
         process.exit();
     }
     while (confirmedSongsIds.includes(songs[songIndex].spotifyId)) {
         songIndex++;
+        if (songIndex >= songs.length) {
+            res.send(finished);
+            process.exit();
+        }
     }
     console.log(`${songIndex + 1}/${songs.length} - ${songs[songIndex].spotifyTitle}`);
     request(songs[songIndex].ytAlbumCover).pipe(fs.createWriteStream(filePath))
@@ -49,8 +55,10 @@ app.get('/', async (req, res) => {
         })
 });
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([a-z]:\/)/, '$1');
+const imagePath = path.join(__dirname, 'tempImage.jpg');
 app.get('/images/:filename', (req, res) => {
-    res.sendFile('C:/Users/maxim/Desktop/spotify-to-yt-download/tempImage.jpg');
+    res.sendFile(imagePath);
 });
 
 app.get('/same', async (req, res) => {
