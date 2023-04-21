@@ -1,33 +1,39 @@
-import youtubeMp3Converter from 'youtube-mp3-converter';
+import config from './config.json' assert { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
+import youtubeMp3Converter from 'youtube-mp3-converter';
 import NodeID3 from 'node-id3';
 import fetch from 'node-fetch';
-let confirmedSongs = await getDatabase('confirmedSongs');
 import fs from 'fs';
+
 if (!fs.existsSync('./songs')) fs.mkdirSync('./songs'); // create ./songs folder if it doesn't exist
 
-const convertLinkToMp3 = youtubeMp3Converter('./songs');
-let notDownloaded = await getDatabase('notDownloaded');
-let downloaded = await getDatabase('downloaded');
+let confirmedSongs_db = await getDatabase('confirmedSongs');
+let confirmedSongs = confirmedSongs_db[config.playlistId] || [];
+let notDownloade_db = await getDatabase('notDownloaded');
+let notDownloaded = notDownloade_db[config.playlistId] || [];
+let downloaded_db = await getDatabase('downloaded');
+let downloaded = downloaded_db[config.playlistId] || [];
 let dontDownload = [];
 
-for (let track of notDownloaded) {
-    dontDownload.push(track.spotifyId);
-}
-for (let track of downloaded) {
-    dontDownload.push(track.spotifyId);
-}
+dontDownload.push(...notDownloaded.map(song => song.spotifyId));
+dontDownload.push(...downloaded.map(song => song.spotifyId));
 
 for (let i = 0; i < confirmedSongs.length; i++) {
-    if (dontDownload.includes(confirmedSongs[i].spotifyId)) continue; // Skip if already downloaded or not downloadable
-    confirmedSongs[i].spotifyTitle = confirmedSongs[i].spotifyTitle.replace(/[/"\\?*:|<>]/g, ".");
-    confirmedSongs[i].spotifyArtists = confirmedSongs[i].spotifyArtists.map(artist => artist.replace(/[/"\\?*:|<>]/g, "."));
-    console.log(`Downloading ${i}/${confirmedSongs.length - 1} - ${((i * 100) / confirmedSongs.length - 1).toFixed(2)}% - ${confirmedSongs[i].ytTitle}`);
+    if (dontDownload.includes(confirmedSongs[i].spotifyId)) {
+        console.log(`Song ${i + 1}/${confirmedSongs.length} - ${((i * 100) / confirmedSongs.length).toFixed(2)}% - Already Downloaded - ${confirmedSongs[i].spotifyTitle}`);
+        continue; // Skip if already downloaded or not downloadable
+    }
+    confirmedSongs[i].spotifyTitle = confirmedSongs[i].spotifyTitle.replace(/[/"\\?*:|<>]/g, '.');
+    confirmedSongs[i].spotifyArtists = confirmedSongs[i].spotifyArtists.map(artist => artist.replace(/[/"\\?*:|<>]/g, '.'));
+    console.log(`Downloading ${i + 1}/${confirmedSongs.length} - ${((i * 100) / confirmedSongs.length).toFixed(2)}% - ${confirmedSongs[i].ytTitle}`);
     try {
+        // create .songs/playlist folder if it doesn't exist
+        if (!fs.existsSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`)) fs.mkdirSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`);
+        const convertLinkToMp3 = youtubeMp3Converter(`./songs/${confirmedSongs[i].spotifyPlaylist}`);
         await convertLinkToMp3(confirmedSongs[i].url, {
             title: confirmedSongs[i].spotifyTitle + ' - ' + confirmedSongs[i].spotifyArtists.join('; '),
         }).then(async (path) => {
-            console.log("Downloaded: ", path);
+            console.log('Downloaded: ' + path);
             const imageBuffer = await fetch(confirmedSongs[i].spotifyAlbumCover)
                 .then(res => res.arrayBuffer())
                 .then(buffer => Buffer.from(buffer));
@@ -48,12 +54,15 @@ for (let i = 0; i < confirmedSongs.length; i++) {
                 }
             });
             downloaded.push(confirmedSongs[i]);
-            setDatabase('downloaded', downloaded);
+            downloaded_db[config.playlistId] = downloaded;
+            setDatabase('downloaded', downloaded_db);
         });
     } catch (e) {
         console.log(e);
         notDownloaded.push(confirmedSongs[i]);
-        await setDatabase('notDownloaded', notDownloaded);
-        console.log("Error downloading: ", confirmedSongs[i].ytTitle + ' - ' + confirmedSongs[i].ytArtists.join('; '));
+        notDownloade_db[config.playlistId] = notDownloaded;
+        await setDatabase('notDownloaded', notDownloade_db);
+        console.log('Error downloading: ', confirmedSongs[i].ytTitle + ' - ' + confirmedSongs[i].ytArtists.join('; '));
     }
 }
+console.log('Done downloading all songs!');

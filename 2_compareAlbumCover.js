@@ -1,38 +1,41 @@
-import Jimp from 'jimp';
+import config from './config.json' assert { type: 'json' };
+import { getDatabase, setDatabase } from './database.js';
 import pixelmatch from 'pixelmatch';
 import fetch from 'node-fetch';
-import { getDatabase, setDatabase } from './database.js';
-let songs = await getDatabase('ytList');
+import Jimp from 'jimp';
 
-// percentage of pixels that must be the same for the images to be considered equal
-const percentage = 70.0;
+let songs_db = await getDatabase('ytList');
+let songs = songs_db[config.playlistId] || [];
+let skipSongs_db = await getDatabase('confirmedSongs');
+let skipSongs = skipSongs_db[config.playlistId] || [];
+let unconfirmedSongs_db = await getDatabase('unconfirmedSongs');
+let unconfirmedSongs = unconfirmedSongs_db[config.playlistId] || [];
 
-
-let skipSongs = await getDatabase('confirmedSongs');
-let unconfirmedSongs = await getDatabase('unconfirmedSongs');
 skipSongs.push(...unconfirmedSongs);
 skipSongs = skipSongs.map(song => song.spotifyId);
 for (let i = 0; i < songs.length; i++) {
     // check if song from ytList is already in confirmedSongs or unconfirmedSongs
     if (skipSongs.includes(songs[i].spotifyId)) {
+        console.log(`Song ${i + 1}/${songs.length} - ${(((i + 1) * 100) / (songs.length)).toFixed(2)}% - Already Confirmed - ${songs[i].spotifyTitle}`);
         continue;
     }
-
     let song = songs[i];
     const image1url = song.ytAlbumCover;
     const image2url = song.spotifyAlbumCover;
-    const same_image = await imagesAreEqual(image1url, image2url, percentage);
+    const same_image = await imagesAreEqual(image1url, image2url, config.similiarity_percentage);
     let song1Seconds = song.ytDuration.split(':').reduce((acc, time) => (60 * acc) + +time);
     let song2Seconds = song.spotifyDuration.split(':').reduce((acc, time) => (60 * acc) + +time);
 
-    if (same_image[0] && Math.abs(song1Seconds - song2Seconds) < 3) {
-        let confirmedSongs = await getDatabase('confirmedSongs');
+    if (same_image[0] && Math.abs(song1Seconds - song2Seconds) <= (config.duration_difference)) {
+        let confirmedSongs_db = await getDatabase('confirmedSongs');
+        let confirmedSongs = confirmedSongs_db[config.playlistId] || [];
         confirmedSongs.push(song);
-        await setDatabase('confirmedSongs', confirmedSongs);
-        console.log('Same - ' + songs[i].spotifyTitle);
+        confirmedSongs_db[config.playlistId] = confirmedSongs;
+        await setDatabase('confirmedSongs', confirmedSongs_db);
+        console.log(`Song ${i + 1}/${songs.length} - ${(((i + 1) * 100) / (songs.length)).toFixed(2)}% - Same - ${songs[i].spotifyTitle}`);
     } else {
-        let reason = same_image[0] ? 'Duration ' + Math.abs(song1Seconds - song2Seconds) + 's - ' : 'Album Cover ' + same_image[1] + '% - ';
-        console.log('Different ' + reason + songs[i].spotifyTitle);
+        let reason = same_image[0] ? 'Duration ' + Math.abs(song1Seconds - song2Seconds) + 's' : 'Album Cover ' + same_image[1] + '%';
+        console.log(`Song ${i + 1}/${songs.length} - ${(((i + 1) * 100) / (songs.length)).toFixed(2)}% - Different ${reason} - ${songs[i].spotifyTitle}`);
     }
 }
 

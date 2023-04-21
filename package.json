@@ -17,7 +17,6 @@
     "node-id3": "^0.2.6",
     "node-youtube-music": "^0.8.3",
     "pixelmatch": "^5.3.0",
-    "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2",
     "youtube-mp3-converter": "^1.0.3"
   }

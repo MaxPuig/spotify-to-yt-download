@@ -1,18 +1,19 @@
-import express from 'express';
-import request from 'request';
-import path from 'path';
-import fs from 'fs';
+import config from './config.json' assert { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
-let songs = await getDatabase('ytList');
-let sameSongs = await getDatabase('confirmedSongs');
-let differentSongs = await getDatabase('unconfirmedSongs');
-let confirmedSongsIds = [];
+import express from 'express';
+import fetch from 'node-fetch';
 
+let songs_db = await getDatabase('ytList');
+let songs = songs_db[config.playlistId] || [];
+let sameSongs_db = await getDatabase('confirmedSongs');
+let sameSongs = sameSongs_db[config.playlistId] || [];
+let differentSongs_db = await getDatabase('unconfirmedSongs');
+let differentSongs = differentSongs_db[config.playlistId] || [];
+let confirmedSongsIds = [];
+let songIndex = 0;
 
 const app = express();
 app.use(express.static('public'));
-
-let songIndex = 0;
 
 function checkIfConfirmed() {
     confirmedSongsIds = [];
@@ -23,7 +24,6 @@ function checkIfConfirmed() {
 
 let number_of_unconfirmed = 0;
 app.get('/', async (req, res) => {
-    const filePath = 'tempImage.jpg';
     checkIfConfirmed();
     const finished = 'Done checking if same album cover. You can now start the next script!';
     if (songIndex >= songs.length) {
@@ -39,13 +39,11 @@ app.get('/', async (req, res) => {
             process.exit();
         }
     }
-    console.log(`${songIndex + 1}/${songs.length} - ${songs[songIndex].spotifyTitle}`);
-    request(songs[songIndex].ytAlbumCover).pipe(fs.createWriteStream(filePath))
-        .on('close', async () => {
-            let calculate_confirmed = await getDatabase('confirmedSongs');
-            let calculate_unconfirmed = songs.length - calculate_confirmed.length - number_of_unconfirmed;
-
-            let html = `<body style="background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    let calculate_confirmed_db = await getDatabase('confirmedSongs');
+    let calculate_confirmed = calculate_confirmed_db[config.playlistId] || [];
+    let calculate_unconfirmed = songs.length - calculate_confirmed.length - number_of_unconfirmed;
+    console.log(`${songIndex + 1}/${songs.length} - ${calculate_unconfirmed} left - ${songs[songIndex].spotifyTitle}`);
+    let html = `<body style="background-color: grey; display: flex; flex-direction: column; justify-content: center; align-items: center;">
             <div style="text-align: center;"><h1>Are they the same song? ${songIndex + 1}/${songs.length} (${calculate_unconfirmed} left)</h1>
             <p>Spotify: <a href="https://open.spotify.com/track/${songs[songIndex].spotifyId}" target="_blank">
             ${songs[songIndex].spotifyDuration} - ${songs[songIndex].spotifyTitle} - ${songs[songIndex].spotifyArtists.join('; ')}</a></p>
@@ -57,23 +55,25 @@ app.get('/', async (req, res) => {
             <div style="display: flex; justify-content: center; margin-top: 10px">
             <button><a href="/same?spotifyId=${songs[songIndex].spotifyId}">same</a></button> 
             <button><a href="/different?spotifyId=${songs[songIndex].spotifyId}">different</a></button></div></body>`
-            res.send(html);
-        })
+    res.send(html);
 });
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([a-z]:\/)/, '$1');
-const imagePath = path.join(__dirname, 'tempImage.jpg');
-app.get('/images/:filename', (req, res) => {
-    res.sendFile(imagePath);
+app.get('/images/:filename', async (req, res) => {
+    res.setHeader('Content-Type', 'image/jpeg');
+    let image_buffer = await fetch(songs[songIndex].ytAlbumCover).then(res => res.arrayBuffer())
+        .then(buffer => Buffer.from(buffer));;
+    res.send(image_buffer);
 });
 
 app.get('/same', async (req, res) => {
     sameSongs.push(songs[searchspotifyId(req.query.spotifyId, songs)]);
     songIndex++;
-    await setDatabase('confirmedSongs', sameSongs);
+    sameSongs_db[config.playlistId] = sameSongs;
+    await setDatabase('confirmedSongs', sameSongs_db);
     if (searchspotifyId(req.query.spotifyId, differentSongs) != -1) { // if song is already in unconfirmedSongs
         differentSongs.splice(searchspotifyId(req.query.spotifyId, differentSongs), 1);
-        await setDatabase('unconfirmedSongs', differentSongs);
+        differentSongs_db[config.playlistId] = differentSongs;
+        await setDatabase('unconfirmedSongs', differentSongs_db);
     }
     res.redirect('/');
 });
@@ -87,12 +87,13 @@ app.get('/different', async (req, res) => {
     }
     differentSongs.push(songs[searchspotifyId(req.query.spotifyId, songs)]);
     songIndex++;
-    await setDatabase('unconfirmedSongs', differentSongs);
+    differentSongs_db[config.playlistId] = differentSongs;
+    await setDatabase('unconfirmedSongs', differentSongs_db);
     res.redirect('/');
 });
 
 app.listen(1234, () => {
-    console.log("Server running at http://localhost:1234");
+    console.log('Server running at http://localhost:1234');
 });
 
 function searchspotifyId(spotifyId, array_search) {

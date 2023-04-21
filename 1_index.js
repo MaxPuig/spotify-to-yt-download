@@ -1,13 +1,7 @@
+import config from './config.json' assert { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import * as YouTubeMusic from 'node-youtube-music';
 import SpotifyWebApi from 'spotify-web-api-node';
-
-
-const config = {
-    "clientId": "",
-    "clientSecret": "",
-    "playlistId": "0BxSFctZ12PYY7ysO9mrTc"
-}
 
 main()
 
@@ -17,13 +11,11 @@ async function main() {
     await getSongsFromYoutubeMusic(songs);
 }
 
-
 async function authenticate(clientId, clientSecret) {
     const spotifyApi = new SpotifyWebApi({ clientId, clientSecret })
     spotifyApi.setAccessToken((await spotifyApi.clientCredentialsGrant()).body.access_token)
     return spotifyApi;
 }
-
 
 async function getSongsFromPlaylist(spotifyApi, playlistId) {
     const tracks = await spotifyApi.getPlaylistTracks(playlistId, { offset: 0, limit: 100 });
@@ -37,13 +29,13 @@ async function getSongsFromPlaylist(spotifyApi, playlistId) {
     return tracks.body.items;
 }
 
-
 async function getSongsFromYoutubeMusic(tracks) {
     for (let i = 0; i < tracks.length; i++) {
         try {
             let track = tracks[i].track;
             // If already in ytList, skip
-            let ytList = await getDatabase('ytList');
+            let ytList_db = await getDatabase('ytList');
+            let ytList = ytList_db[config.playlistId] || [];
             if (ytList.filter(song => song.spotifyId === track.id).length > 0) {
                 console.log('Already in ytList - ' + track.name);
                 continue;
@@ -75,7 +67,8 @@ async function getSongsFromYoutubeMusic(tracks) {
                     spotifyAlbum: track.album.name,
                     spotifyAlbumCover: track.album.images[0].url,
                     spotifyDuration: msToMinsSecs(track.duration_ms),
-                    spotifyYear: track.album.release_date.split('-')[0]
+                    spotifyYear: track.album.release_date.split('-')[0],
+                    spotifyPlaylist: config.playlistId,
                 })
             } else {
                 ytList.push({
@@ -91,11 +84,13 @@ async function getSongsFromYoutubeMusic(tracks) {
                     spotifyAlbum: track.album.name,
                     spotifyAlbumCover: track.album.images[0].url,
                     spotifyDuration: msToMinsSecs(track.duration_ms),
-                    spotifyYear: track.album.release_date.split('-')[0]
+                    spotifyYear: track.album.release_date.split('-')[0],
+                    spotifyPlaylist: config.playlistId,
                 })
             }
             console.log(`Song ${i + 1}/${tracks.length} - ${(((i + 1) * 100) / (tracks.length)).toFixed(2)}% - ${tracks[i].track.name}`);
-            await setDatabase('ytList', ytList);
+            ytList_db[config.playlistId] = ytList;
+            await setDatabase('ytList', ytList_db);
         } catch (e) {
             console.log(`Error on song ${i} - ${tracks[i].track.name}`);
             console.log(e);
@@ -105,9 +100,7 @@ async function getSongsFromYoutubeMusic(tracks) {
     return;
 }
 
-
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
 
 function replaceTitle(title) {
     // Replace extra content so it can be compared
@@ -116,7 +109,6 @@ function replaceTitle(title) {
     title = title.replace(/ \(.+?\)/, '').replace(/ - .+$/, '');
     return title;
 }
-
 
 function msToMinsSecs(ms) {
     let mins = Math.floor(ms / 60000);
