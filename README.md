@@ -25,7 +25,7 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 2. Install libraries: `npm install`
 3. Modify `config.json` with your Spotify `clientId`, `clientSecret`, and `playlistId`
 4. Run the scripts in order
-   1. `node 1_index.js` - Search for the Spotify songs on YouTube Music.
+   1. `node 1_searchSongsOnYT.js` - Search for the Spotify songs on YouTube Music.
    2. `node 2_compareAlbumCover.js` - Compare the Spotify and YouTube Music album covers and playtime.
    3. `node 3_checkIfSame.js` - (Recommended/Optional) Open http://localhost:1234/ and choose if the songs match. This step is optional if you trust the previous step, you won't download the songs that didn't match the album cover or the difference between song duration was higher than the maximum set in `config.json`.
    4. `node 4_searchUnconfirmed.js` - (Optional) Open http://localhost:1234/ and choose an alternative YouTube video/song. This step is optional if you don't want to search for an alternative song from the "different" songs from the previous step.
@@ -33,7 +33,7 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 5. Enjoy your songs in the `./songs` folder!
 
 ## Notes
-When testing `1_index.js`:
+When testing `1_searchSongsOnYT.js`:
 - 100% of songs had a candidate on YouTube Music.
   - Found: 328/328.
   - Not found: 0/328.
