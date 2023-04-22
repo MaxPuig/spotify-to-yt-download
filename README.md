@@ -34,27 +34,72 @@ Download a Spotify Playlist using YouTube Music. The mp3 files will be downloade
 
 ## Notes
 When testing `1_searchSongsOnYT.js`:
-- 100% of songs had a candidate on YouTube Music.
+- 100% of songs had a candidate on YouTube Music. This value, however, is not 100% accurate as some song will probably be **wrong**.
   - Found: 328/328.
   - Not found: 0/328.
 
+```mermaid
+%%{init: {'themeVariables': { 'pie1': '#77DD88', 'pie2': '#E74C3C'}}}%%
+
+pie showData
+  title Found using 1_searchSongsOnYT.js
+  "Found" : 328
+  "Not found" : 0
+```
+
 When testing `2_compareAlbumCover.js`:
-- 88% of songs were automatically confirmed.
+- 88% of songs were automatically confirmed, meaning they had the same album cover and the same song duration (within the threshold set in `config.json`).
   - Confirmed: 289/328.
   - Unconfirmed: 39/328.
-    - 26/39 were unconfirmed due to the album covers not matching. With `similiarity_percentage` set to 70%.  
-    - 13/39 were unconfirmed due to the difference in song durations not matching. With `duration_difference` set to 2 seconds.
+
+```mermaid
+%%{init: {'themeVariables': { 'pie1': '#77DD88', 'pie2': '#E74C3C'}}}%%
+
+pie showData
+  title Found using 2_compareAlbumCover.js
+  "Confirmed" : 289
+  "Unconfirmed" : 39
+```
 
 When testing `3_checkIfSame.js`:
-- 44% Where false positives, meaning they were the same song but with a different album cover or different song duration
+- 44% of the unconfirmed songs were false positives. They were marked as unconfirmed when actually they were the same song but with a different album cover or a different song duration.
   - Manually confirmed: 17/39.
     - Total confirmed: 306/328 (93%).
   - Manually unconfirmed: 22/39.
 
+```mermaid
+%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#77DD88', 'pie3': '#E74C3C'}}}%%
+
+pie showData
+  title Found using 3_checkIfSame.js
+  "Previously Confirmed" : 289
+  "Manually Confirmed" : 17
+  "Manually Unconfirmed" : 22
+```
+
 When testing `4_searchUnconfirmed.js`:
-- 23% of songs had an available alternative
+- 23% of the unconfirmed songs had an available alternative from the options shown in the browser.
   - 5/22 had an alternative.
     - Total confirmed: 311/328 (95%).
   - 17/22 didn't have an alternative.
 
+```mermaid
+%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#77DD88', 'pie3': '#E74C3C'}}}%%
+
+pie showData
+  title Found using 4_searchUnconfirmed.js
+  "Previously Confirmed" : 306
+  "Alternatives Found" : 5
+  "Alternatives Not Found" : 17
+```
+
 Ending up with a total of 311/328 songs downloaded (95%).
+
+```mermaid
+%%{init: {'themeVariables': { 'pie1': '#77DD88', 'pie2': '#E74C3C'}}}%%
+
+pie showData
+  title Total songs downloaded
+  "Downloaded" : 311
+  "Not Downloaded" : 17
+```
