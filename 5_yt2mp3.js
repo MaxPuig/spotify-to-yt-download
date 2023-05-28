@@ -1,6 +1,6 @@
 import config from './config.json' assert { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
-import youtubeMp3Converter from 'youtube-mp3-converter';
+import { Downloader } from 'ytdl-mp3';
 import NodeID3 from 'node-id3';
 import fetch from 'node-fetch';
 import fs from 'fs';
@@ -29,10 +29,11 @@ for (let i = 0; i < confirmedSongs.length; i++) {
     try {
         // create .songs/playlist folder if it doesn't exist
         if (!fs.existsSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`)) fs.mkdirSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`);
-        const convertLinkToMp3 = youtubeMp3Converter(`./songs/${confirmedSongs[i].spotifyPlaylist}`);
-        await convertLinkToMp3(confirmedSongs[i].url, {
-            title: confirmedSongs[i].spotifyTitle + ' - ' + confirmedSongs[i].spotifyArtists.join('; '),
-        }).then(async (path) => {
+        const downloader = new Downloader({ getTags: false, outputDir: `./songs/${confirmedSongs[i].spotifyPlaylist}` });
+        await downloader.downloadSong(confirmedSongs[i].url).then(async (path) => {
+            const song_name = removeInvalidChars(confirmedSongs[i].spotifyArtists.join('; ') + ' - ' + confirmedSongs[i].spotifyTitle);
+            fs.renameSync(path, `./songs/${confirmedSongs[i].spotifyPlaylist}/${song_name}.mp3`);
+            path = `./songs/${confirmedSongs[i].spotifyPlaylist}/${song_name}.mp3`;
             console.log('Downloaded: ' + path);
             const imageBuffer = await fetch(confirmedSongs[i].spotifyAlbumCover)
                 .then(res => res.arrayBuffer())
@@ -66,3 +67,8 @@ for (let i = 0; i < confirmedSongs.length; i++) {
     }
 }
 console.log('Done downloading all songs!');
+
+function removeInvalidChars(filename) {
+    const invalidCharsRegex = /[<>:"\/\\|?*\x00-\x1F]/g;
+    return filename.replace(invalidCharsRegex, '');
+}
