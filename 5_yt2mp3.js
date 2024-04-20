@@ -45,7 +45,7 @@ for (let i = 0; i < confirmedSongs.length; i++) {
                 year: confirmedSongs[i].spotifyYear,
                 image: {
                     mime: 'image/jpeg',
-                    type: { id: 2 },
+                    type: { id: 3 },
                     imageBuffer
                 }
             };

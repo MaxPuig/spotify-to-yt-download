@@ -92,7 +92,7 @@ async function getSongsFromYoutubeMusic(tracks) {
             ytList_db[config.playlistId] = ytList;
             await setDatabase('ytList', ytList_db);
         } catch (e) {
-            console.log(`Error on song ${i} - ${tracks[i].track.name}`);
+            console.log(`Error on song ${i} - ${tracks[i]?.track?.name}`);
             console.log(e);
         }
     }
