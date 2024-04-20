@@ -68,7 +68,7 @@ When testing `3_checkIfSame.js`:
   - Manually unconfirmed: 22/39.
 
 ```mermaid
-%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#77DD88', 'pie3': '#E74C3C'}}}%%
+%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#E74C3C', 'pie3': '#77DD88'}}}%%
 
 pie showData
   title Found using 3_checkIfSame.js
@@ -84,7 +84,7 @@ When testing `4_searchUnconfirmed.js`:
   - 17/22 didn't have an alternative.
 
 ```mermaid
-%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#77DD88', 'pie3': '#E74C3C'}}}%%
+%%{init: {'themeVariables': {'pie1': '#1aa7ec',  'pie2': '#E74C3C', 'pie3': '#77DD88'}}}%%
 
 pie showData
   title Found using 4_searchUnconfirmed.js
