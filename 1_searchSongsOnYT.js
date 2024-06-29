@@ -1,4 +1,4 @@
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import * as YouTubeMusic from 'node-youtube-music';
 import SpotifyWebApi from 'spotify-web-api-node';
@@ -49,6 +49,7 @@ async function getSongsFromYoutubeMusic(tracks) {
             content = content.filter(song => replaceTitle(song.title) === replaceTitle(track.name))
             content = content.filter(song => song.artists.length > 0)
             content = content.filter(song => song.artists[0].name === track.artists[0].name)
+            content = content.filter(song => song.youtubeId !== undefined);
             // Filter Explicit -- Explicit will be preferred
             let explicit = content.filter(song => song.isExplicit)
             content = explicit.length > 0 ? explicit : content

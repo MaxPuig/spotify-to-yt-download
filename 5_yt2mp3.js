@@ -1,4 +1,4 @@
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import { Downloader } from 'ytdl-mp3';
 import NodeID3 from 'node-id3';
@@ -18,14 +18,19 @@ let dontDownload = [];
 dontDownload.push(...notDownloaded.map(song => song.spotifyId));
 dontDownload.push(...downloaded.map(song => song.spotifyId));
 
+const numberOfSongsToDownload = confirmedSongs.length - downloaded.length - notDownloaded.length;
+console.log(`Number of songs to download: ${numberOfSongsToDownload}`);
+let currentSongNumber = 0;
+
 for (let i = 0; i < confirmedSongs.length; i++) {
     if (dontDownload.includes(confirmedSongs[i].spotifyId)) {
         console.log(`Song ${i + 1}/${confirmedSongs.length} - ${((i * 100) / confirmedSongs.length).toFixed(2)}% - Already Downloaded - ${confirmedSongs[i].spotifyTitle}`);
         continue; // Skip if already downloaded or not downloadable
     }
+    currentSongNumber++;
     confirmedSongs[i].spotifyTitle = confirmedSongs[i].spotifyTitle.replace(/[/"\\?*:|<>]/g, '.');
     confirmedSongs[i].spotifyArtists = confirmedSongs[i].spotifyArtists.map(artist => artist.replace(/[/"\\?*:|<>]/g, '.'));
-    console.log(`Downloading ${i + 1}/${confirmedSongs.length} - ${((i * 100) / confirmedSongs.length).toFixed(2)}% - ${confirmedSongs[i].ytTitle}`);
+    console.log(`Downloading ${currentSongNumber}/${numberOfSongsToDownload} - ${((currentSongNumber * 100) / numberOfSongsToDownload).toFixed(2)}% - ${confirmedSongs[i].ytTitle}`);
     try {
         // create .songs/playlist folder if it doesn't exist
         if (!fs.existsSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`)) fs.mkdirSync(`./songs/${confirmedSongs[i].spotifyPlaylist}`);
@@ -66,6 +71,7 @@ for (let i = 0; i < confirmedSongs.length; i++) {
         console.log('Error downloading: ', confirmedSongs[i].ytTitle + ' - ' + confirmedSongs[i].ytArtists.join('; '));
     }
 }
+
 console.log('Done downloading all songs!');
 
 function removeInvalidChars(filename) {

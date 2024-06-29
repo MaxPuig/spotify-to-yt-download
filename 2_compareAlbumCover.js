@@ -1,4 +1,4 @@
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import pixelmatch from 'pixelmatch';
 import fetch from 'node-fetch';

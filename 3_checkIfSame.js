@@ -1,4 +1,4 @@
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import express from 'express';
 import fetch from 'node-fetch';
@@ -50,8 +50,8 @@ app.get('/', async (req, res) => {
             <p>YouTube: <a href="${songs[songIndex].url}" target="_blank">
             ${songs[songIndex].ytDuration} - ${songs[songIndex].ytTitle} - ${songs[songIndex].ytArtists.join('; ')}</a></p></div>
             <div style="display: flex; justify-content: center;">
-            <img src="/images/tempImage.jpg" alt="Image1" width="120" height="120" style="margin-right: 10px;">
-            <img src="${songs[songIndex].spotifyAlbumCover}" alt="Image2" width="120" height="120"></div>
+            <img src="${songs[songIndex].spotifyAlbumCover}" alt="Image1" width="120" height="120" style="margin-right: 10px;">
+            <img src="/images/tempImage.jpg" alt="Image2" width="120" height="120"></div>
             <div style="display: flex; justify-content: center; margin-top: 10px">
             <button><a href="/same?spotifyId=${songs[songIndex].spotifyId}">same</a></button> 
             <button><a href="/different?spotifyId=${songs[songIndex].spotifyId}">different</a></button></div></body>`

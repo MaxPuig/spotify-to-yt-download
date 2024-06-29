@@ -1,4 +1,4 @@
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 import { getDatabase, setDatabase } from './database.js';
 import * as YouTubeMusic from 'node-youtube-music';
 import express from 'express';
