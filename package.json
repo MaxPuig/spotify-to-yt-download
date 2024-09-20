@@ -15,9 +15,9 @@
     "lowdb": "^5.0.5",
     "node-fetch": "^3.3.1",
     "node-id3": "^0.2.6",
-    "node-youtube-music": "^0.8.3",
+    "node-youtube-music": "^0.10.3",
     "pixelmatch": "^5.3.0",
     "spotify-web-api-node": "^5.0.2",
-    "ytdl-mp3": "^3.1.0"
+    "ytdl-mp3": "^5.0.0"
   }
 }
